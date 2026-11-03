@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Coworking Space – Waiter Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#0a2540',
+            accent:  '#1B9FD4',
+            gold:    '#F5C842',
+            cream:   '#F4F1EC',
+          }
+        }
+      }
+    }
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    body { min-width: 768px; min-height: 100vh; height: 100vh; margin:0; font-family:'Inter',sans-serif; background:#F4F1EC; overflow:hidden; }
+    .tab-panel { display:none; height:100%; }
+    .tab-panel.active { display:flex; flex-direction:column; height:100%; }
+    .order-card { cursor:pointer; transition:all .2s; }
+    .order-card:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(10,37,64,.15); }
+    .order-card.selected { border-color:#1B9FD4; box-shadow:0 0 0 2px #1B9FD4; }
+    ::-webkit-scrollbar { width:4px; height:4px; }
+    ::-webkit-scrollbar-track { background:#f1f1f1; }
+    ::-webkit-scrollbar-thumb { background:#1B9FD4; border-radius:4px; }
+    .status-badge { font-size:10px; font-weight:700; padding:2px 8px; border-radius:99px; }
+    .badge-new     { background:#FEF3C7; color:#92400E; }
+    .badge-process { background:#DBEAFE; color:#1E40AF; }
+    .badge-done    { background:#D1FAE5; color:#065F46; }
+    .badge-cancel  { background:#FEE2E2; color:#991B1B; }
+  </style>
+</head>
+<body>
+<div class="flex h-full">
+
+  <!-- ── Sidebar ── -->
+  <div class="w-16 bg-primary flex flex-col items-center py-4 gap-4 shrink-0">
+    <div class="w-10 h-10 bg-gold rounded-xl flex items-center justify-center text-primary font-black text-sm">CS</div>
+    <div class="flex-1 flex flex-col items-center gap-3 mt-4">
+      <button onclick="switchTab('orders')" id="nav-orders" class="w-10 h-10 rounded-xl bg-accent/20 text-accent flex flex-col items-center justify-center gap-0.5 nav-btn active" title="Pesanan Masuk">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+      </button>
+      <button onclick="switchTab('cashier')" id="nav-cashier" class="w-10 h-10 rounded-xl text-white/40 hover:bg-white/10 hover:text-white flex flex-col items-center justify-center gap-0.5 nav-btn" title="Kasir">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+      </button>
+      <button onclick="switchTab('status')" id="nav-status" class="w-10 h-10 rounded-xl text-white/40 hover:bg-white/10 hover:text-white flex flex-col items-center justify-center gap-0.5 nav-btn" title="Update Status">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      </button>
+    </div>
+    <div class="w-8 h-8 bg-accent/20 rounded-full flex items-center justify-center text-white text-xs font-bold">W</div>
+  </div>
+
+  <!-- ── Main Content ── -->
+  <div class="flex-1 flex flex-col overflow-hidden">
+
+    <!-- ════════ TAB 1: PESANAN MASUK ════════ -->
+    <div id="tab-orders" class="tab-panel active">
+      <!-- Topbar -->
+      <div class="bg-white border-b border-gray-100 px-5 py-3 flex items-center justify-between shrink-0">
+        <div>
+          <h1 class="text-primary font-bold text-base">Pesanan Masuk</h1>
+          <p class="text-gray-400 text-xs">Senin, 3 November 2026 · 09:15</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <div class="relative">
+            <span class="bg-red-500 text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center absolute -top-1 -right-1 badge-pulse">5</span>
+            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+          </div>
+          <div class="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-1.5">
+            <div class="w-6 h-6 bg-primary rounded-full flex items-center justify-center text-white text-[10px] font-bold">W</div>
+            <span class="text-primary text-xs font-semibold">Waiter 1</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex flex-1 overflow-hidden">
+        <!-- Order List -->
+        <div class="w-80 bg-gray-50 border-r border-gray-100 flex flex-col overflow-hidden shrink-0">
+          <div class="px-3 py-2.5 border-b border-gray-100 flex items-center gap-2">
+            <div class="flex-1 bg-white rounded-lg flex items-center px-2.5 py-1.5 gap-2 border border-gray-200">
+              <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+              <input class="text-xs text-gray-600 outline-none flex-1 bg-transparent" placeholder="Cari pesanan..." />
+            </div>
+            <div class="flex gap-1">
+              <button class="bg-primary text-white text-[10px] px-2 py-1 rounded font-semibold">Semua</button>
+              <button class="text-gray-400 text-[10px] px-2 py-1 rounded font-semibold hover:bg-gray-200">Baru</button>
+            </div>
+          </div>
+          <div class="overflow-y-auto flex-1 p-2 space-y-2">
+            <!-- Order cards -->
+            <div onclick="selectOrder(1, this)" class="order-card bg-white rounded-xl p-3 border-2 border-accent selected" data-order="1">
+              <div class="flex items-start justify-between mb-1.5">
+                <div>
+                  <p class="text-primary font-bold text-sm">#024 · Meja 7</p>
+                  <p class="text-gray-400 text-[10px]">09:15 · 2 item</p>
+                </div>
+                <span class="status-badge badge-new">BARU</span>
+              </div>
+              <p class="text-gray-600 text-xs truncate">Caramel Macchiato, Croissant Butter</p>
+              <div class="flex items-center justify-between mt-2">
+                <span class="text-accent font-bold text-xs">Rp 50.600</span>
+                <span class="text-[10px] text-gray-300">2 mnt lalu</span>
+              </div>
+            </div>
+            <div onclick="selectOrder(2, this)" class="order-card bg-white rounded-xl p-3 border-2 border-transparent" data-order="2">
+              <div class="flex items-start justify-between mb-1.5">
+                <div>
+                  <p class="text-primary font-bold text-sm">#023 · Meja 3</p>
+                  <p class="text-gray-400 text-[10px]">09:10 · 3 item</p>
+                </div>
+                <span class="status-badge badge-process">PROSES</span>
+              </div>
+              <p class="text-gray-600 text-xs truncate">Matcha Latte, Americano, Sandwich</p>
+              <div class="flex items-center justify-between mt-2">
+                <span class="text-accent font-bold text-xs">Rp 74.800</span>
+                <span class="text-[10px] text-gray-300">7 mnt lalu</span>
+              </div>
+            </div>
+            <div onclick="selectOrder(3, this)" class="order-card bg-white rounded-xl p-3 border-2 border-transparent" data-order="3">
+              <div class="flex items-start justify-between mb-1.5">
+                <div>
+                  <p class="text-primary font-bold text-sm">#022 · Meja 1</p>
+                  <p class="text-gray-400 text-[10px]">09:00 · 1 item</p>
+                </div>
+                <span class="status-badge badge-done">SELESAI</span>
+              </div>
+              <p class="text-gray-600 text-xs truncate">Cold Brew</p>
+              <div class="flex items-center justify-between mt-2">
+                <span class="text-accent font-bold text-xs">Rp 33.000</span>
+                <span class="text-[10px] text-gray-300">15 mnt lalu</span>
+              </div>
+            </div>
+            <div onclick="selectOrder(4, this)" class="order-card bg-white rounded-xl p-3 border-2 border-transparent" data-order="4">
+              <div class="flex items-start justify-between mb-1.5">
+                <div>
+                  <p class="text-primary font-bold text-sm">#021 · Meja 5</p>
+                  <p class="text-gray-400 text-[10px]">08:55 · 4 item</p>
+                </div>
+                <span class="status-badge badge-process">PROSES</span>
+              </div>
+              <p class="text-gray-600 text-xs truncate">Cappuccino, Taro Latte, Tiramisu, Fries</p>
+              <div class="flex items-center justify-between mt-2">
+                <span class="text-accent font-bold text-xs">Rp 102.300</span>
+                <span class="text-[10px] text-gray-300">20 mnt lalu</span>
+              </div>
+            </div>
+            <div onclick="selectOrder(5, this)" class="order-card bg-white rounded-xl p-3 border-2 border-transparent" data-order="5">
+              <div class="flex items-start justify-between mb-1.5">
+                <div>
+                  <p class="text-primary font-bold text-sm">#020 · Meja 2</p>
+                  <p class="text-gray-400 text-[10px]">08:40 · 2 item</p>
+                </div>
+                <span class="status-badge badge-cancel">BATAL</span>
+              </div>
+              <p class="text-gray-600 text-xs truncate">Espresso, Cheesecake</p>
+              <div class="flex items-center justify-between mt-2">
+                <span class="text-accent font-bold text-xs">Rp 44.000</span>
+                <span class="text-[10px] text-gray-300">35 mnt lalu</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Order Detail Panel -->
+        <div class="flex-1 p-5 overflow-y-auto">
+          <div id="order-detail-panel">
+            <!-- Default: order 1 detail -->
+            <div class="flex items-start justify-between mb-5">
+              <div>
+                <h2 class="text-primary font-bold text-lg">#024 – Meja 7</h2>
+                <p class="text-gray-400 text-xs">Masuk: 09:15 · Pelanggan: Anonim</p>
+              </div>
+              <span class="status-badge badge-new text-sm px-3 py-1">BARU</span>
+            </div>
+
+            <!-- Items -->
+            <div class="bg-white rounded-2xl p-4 mb-4">
+              <h3 class="text-primary font-semibold text-sm mb-3">📋 Detail Item</h3>
+              <div class="space-y-3">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center text-xl">☕</div>
+                  <div class="flex-1">
+                    <p class="text-primary font-semibold text-sm">Caramel Macchiato</p>
+                    <p class="text-gray-400 text-xs">Qty: 1 · Espresso, Caramel</p>
+                    <p class="text-gray-400 text-xs italic">Catatan: Gula sedikit</p>
+                  </div>
+                  <span class="text-accent font-bold text-sm">Rp 28.000</span>
+                </div>
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 bg-yellow-100 rounded-xl flex items-center justify-center text-xl">🥐</div>
+                  <div class="flex-1">
+                    <p class="text-primary font-semibold text-sm">Croissant Butter</p>
+                    <p class="text-gray-400 text-xs">Qty: 1 · Freshly baked</p>
+                  </div>
+                  <span class="text-accent font-bold text-sm">Rp 18.000</span>
+                </div>
+              </div>
+              <div class="border-t border-gray-100 mt-4 pt-3 space-y-1">
+                <div class="flex justify-between text-xs text-gray-500"><span>Subtotal</span><span>Rp 46.000</span></div>
+                <div class="flex justify-between text-xs text-gray-500"><span>PPN 10%</span><span>Rp 4.600</span></div>
+                <div class="flex justify-between font-bold text-sm"><span class="text-primary">Total</span><span class="text-accent">Rp 50.600</span></div>
+              </div>
+            </div>
+
+            <!-- Metode Pembayaran -->
+            <div class="bg-white rounded-2xl p-4 mb-4">
+              <h3 class="text-primary font-semibold text-sm mb-3">💳 Pembayaran</h3>
+              <div class="flex gap-2 items-center">
+                <div class="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center text-lg">🧾</div>
+                <div>
+                  <p class="text-primary font-semibold text-sm">Kasir</p>
+                  <p class="text-gray-400 text-xs">Belum bayar</p>
+                </div>
+                <span class="ml-auto bg-yellow-100 text-yellow-700 text-[10px] font-bold px-2 py-0.5 rounded-full">PENDING</span>
+              </div>
+            </div>
+
+            <!-- Konfirmasi Actions -->
+            <div class="bg-white rounded-2xl p-4">
+              <h3 class="text-primary font-semibold text-sm mb-3">🎯 Tindakan</h3>
+              <div class="grid grid-cols-2 gap-3">
+                <button onclick="confirmOrderAction('terima')" class="bg-primary text-white rounded-xl py-3 text-sm font-bold flex items-center justify-center gap-2 hover:bg-accent transition-colors">
+                  ✅ Terima Pesanan
+                </button>
+                <button onclick="confirmOrderAction('proses')" class="bg-accent/10 text-accent rounded-xl py-3 text-sm font-bold flex items-center justify-center gap-2 hover:bg-accent hover:text-white transition-colors">
+                  ☕ Proses ke Barista
+                </button>
+                <button onclick="confirmOrderAction('siap')" class="bg-green-50 text-green-700 rounded-xl py-3 text-sm font-bold flex items-center justify-center gap-2 hover:bg-green-500 hover:text-white transition-colors">
+                  🚀 Siap Diantar
+                </button>
+                <button onclick="confirmOrderAction('batal')" class="bg-red-50 text-red-500 rounded-xl py-3 text-sm font-bold flex items-center justify-center gap-2 hover:bg-red-500 hover:text-white transition-colors">
+                  ❌ Batalkan
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════ TAB 2: KASIR / ORDER MANUAL ════════ -->
+    <div id="tab-cashier" class="tab-panel">
+      <div class="bg-white border-b border-gray-100 px-5 py-3 flex items-center justify-between shrink-0">
+        <div>
+          <h1 class="text-primary font-bold text-base">Layanan Kasir</h1>
+          <p class="text-gray-400 text-xs">Order manual untuk pelanggan di kasir</p>
+        </div>
+        <div class="flex items-center gap-2 bg-green-50 rounded-lg px-3 py-1.5">
+          <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+          <span class="text-green-700 text-xs font-semibold">Kasir Aktif</span>
+        </div>
+      </div>
+
+      <div class="flex flex-1 overflow-hidden">
+        <!-- Menu Grid -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+          <!-- Category Filter -->
+          <div class="bg-white px-4 py-2 border-b border-gray-100 flex gap-2 overflow-x-auto">
+            <button onclick="filterCashierMenu('Semua', this)" class="cashier-cat-btn bg-primary text-white text-xs font-bold px-3 py-1.5 rounded-lg whitespace-nowrap">Semua</button>
+            <button onclick="filterCashierMenu('Kopi', this)" class="cashier-cat-btn bg-gray-100 text-gray-600 text-xs font-semibold px-3 py-1.5 rounded-lg whitespace-nowrap">☕ Kopi</button>
+            <button onclick="filterCashierMenu('Non Kopi', this)" class="cashier-cat-btn bg-gray-100 text-gray-600 text-xs font-semibold px-3 py-1.5 rounded-lg whitespace-nowrap">🍵 Non Kopi</button>
+            <button onclick="filterCashierMenu('Makanan', this)" class="cashier-cat-btn bg-gray-100 text-gray-600 text-xs font-semibold px-3 py-1.5 rounded-lg whitespace-nowrap">🍽️ Makanan</button>
+            <button onclick="filterCashierMenu('Dessert', this)" class="cashier-cat-btn bg-gray-100 text-gray-600 text-xs font-semibold px-3 py-1.5 rounded-lg whitespace-nowrap">🍰 Dessert</button>
+          </div>
+          <!-- Menu Items Grid -->
+          <div class="overflow-y-auto flex-1 p-3">
+            <div class="grid grid-cols-3 gap-2" id="cashier-menu-grid">
+              <!-- Kopi -->
+              <div onclick="addCashierItem('Espresso','18000')" class="cashier-item bg-white rounded-xl p-3 cursor-pointer active:scale-95 transition-all hover:border-accent hover:border border border-transparent" data-cat="Kopi">
+                <div class="h-16 bg-gradient-to-br from-stone-300 to-stone-600 rounded-lg flex items-center justify-center text-2xl mb-2">☕</div>
+                <p class="text-primary font-semibold text-xs">Espresso</p>
+                <p class="text-accent font-bold text-xs">Rp 18.000</p>
+              </div>
+              <div onclick="addCashierItem('Caramel Macchiato','28000')" class="cashier-item bg-white rounded-xl p-3 cursor-pointer active:scale-95 transition-all hover:border-accent hover:border border border-transparent" data-cat="Kopi">
+                <div class="h-16 bg-gradient-to-br from-amber-200 to-amber-500 rounded-lg flex items-center justify-center text-2xl mb-2">☕</div>
+                <p class="text-primary font-semibold text-xs">Caramel Macchiato</p>
+                <p class="text-accent font-bold text-xs">Rp 28.000</p>
+              </div>
+              <div onclick="addCashierItem('Cappuccino','25000')" class="cashier-item bg-white rounded-xl p-3 cursor-pointer active:scale-95 transition-all hover:border-accent hover:border border border-transparent" data-cat="Kopi">
+                <div class="h-16 bg-gradient-to-br from-amber-100 to-amber-300 rounded-lg flex items-center justify-center text-2xl mb-2">🧋</div>
+                <p class="text-primary font-semibold text-xs">Cappuccino</p>
+                <p class="text-accent font-bold text-xs">Rp 25.000</p>
+              </div>
+              <div onclick="addCashierItem('Americano','20000')" class="cashier-item bg-white rounded-xl p-3 cursor-pointer active:scale-95 transition-all hover:border-accent hover:border border border-transparent" data-cat="Kopi">
+                <div class="h-16 bg-gradient-to-br from-gray-300 to-gray-500 rounded-lg flex items-center justify-center text-2xl mb-2">☕</div>
+                <p class="text-primary font-semibold text-xs">Americano</p>
+                <p class="text-accent font-bold text-xs">Rp 20.000</p>
+              </div>
+              <div onclick="addCashierItem('Cold Brew','30000')" class="cashier-item bg-white rounded-xl p-3 cursor-pointer active:scale-95 transition-all hover:border-accent hover:border border border-transparent" data-cat="Kopi">
+                <div class="h-16 bg-gradient-to-br from-blue-900 to-blue-600 rounded-lg flex items-center justify-center text-2xl mb-2">🧊</div>
+                <p class="text-primary font-semibold text-xs">Cold Brew</p>
+                <p class="text-accent font-bold text-xs">Rp 30.000</p>
+              </div>
+              <div onclick="addCashierItem('Latte','25000')" class="cashier-item bg-white rounded-xl p-3 cursor-pointer active:scale-95 transition-all hover:border-accent hover:border border border-transparent" data-cat="Kopi">
+                <div class="h-16 bg-gradient-to-br from-amber-50 to-amber-200 rounded-lg flex items-center justify-center text-2xl mb-2">☕</div>
+                <p class="text-primary font-semibold text-xs">Latte</p>
+                <p class="text-accent font-bold text-xs">Rp 25.000</p>
+              </div>
+              <!-- Non Kopi -->
+              <div onclick="addCashierItem('Matcha Latte','26000')" class="cashier-item bg-white rounded-xl p-3 cursor-pointer active:scale-95 transition-all hover:border-accent hover:border border border-transparent" data-cat="Non Kopi">
+                <div class="h-16 bg-gradient-to-br from-green-200 to-green-500 rounded-lg flex items-center justify-center text-2xl mb-2">🍵</div>
+                <p class="text-primary font-semibold text-xs">Matcha Latte</p>
+                <p class="text-accent font-bold text-xs">Rp 26.000</p>
+              </div>
+              <div onclick="addCashierItem('Chocolate','24000')" class="cashier-item bg-white rounded-xl p-3 cursor-pointer active:scale-95 transition-all hover:border-accent hover:border border border-transparent" data-cat="Non Kopi">
+                <div class="h-16 bg-gradient-to-br from-amber-800 to-amber-600 rounded-lg flex items-center justify-center text-2xl mb-2">🍫</div>
+                <p class="text-primary font-semibold text-xs">Chocolate</p>
+                <p class="text-accent font-bold text-xs">Rp 24.000</p>
+              </div>
+              <div onclick="addCashierItem('Taro Latte','26000')" class="cashier-item bg-white rounded-xl p-3 cursor-pointer active:scale-95 transition-all hover:border-accent hover:border border border-transparent" data-cat="Non Kopi">
+                <div class="h-16 bg-gradient-to-br from-purple-200 to-purple-500 rounded-lg flex items-center justify-center text-2xl mb-2">🫐</div>
+                <p class="text-primary font-semibold text-xs">Taro Latte</p>
+                <p class="text-accent font-bold text-xs">Rp 26.000</p>
+              </div>
+              <!-- Makanan -->
+              <div onclick="addCashierItem('Croissant','18000')" class="cashier-item bg-white rounded-xl p-3 cursor-pointer active:scale-95 transition-all hover:border-accent hover:border border border-transparent" data-cat="Makanan">
+                <div class="h-16 bg-gradient-to-br from-yellow-100 to-yellow-300 rounded-lg flex items-center justify-center text-2xl mb-2">🥐</div>
+                <p class="text-primary font-semibold text-xs">Croissant Butter</p>
+                <p class="text-accent font-bold text-xs">Rp 18.000</p>
+              </div>
+              <div onclick="addCashierItem('Sandwich Tuna','22000')" class="cashier-item bg-white rounded-xl p-3 cursor-pointer active:scale-95 transition-all hover:border-accent hover:border border border-transparent" data-cat="Makanan">
+                <div class="h-16 bg-gradient-to-br from-orange-100 to-orange-300 rounded-lg flex items-center justify-center text-2xl mb-2">🥪</div>
+                <p class="text-primary font-semibold text-xs">Sandwich Tuna</p>
+                <p class="text-accent font-bold text-xs">Rp 22.000</p>
+              </div>
+              <div onclick="addCashierItem('French Fries','15000')" class="cashier-item bg-white rounded-xl p-3 cursor-pointer active:scale-95 transition-all hover:border-accent hover:border border border-transparent" data-cat="Makanan">
+                <div class="h-16 bg-gradient-to-br from-yellow-200 to-yellow-500 rounded-lg flex items-center justify-center text-2xl mb-2">🍟</div>
+                <p class="text-primary font-semibold text-xs">French Fries</p>
+                <p class="text-accent font-bold text-xs">Rp 15.000</p>
+              </div>
+              <!-- Dessert -->
+              <div onclick="addCashierItem('Cheesecake','22000')" class="cashier-item bg-white rounded-xl p-3 cursor-pointer active:scale-95 transition-all hover:border-accent hover:border border border-transparent" data-cat="Dessert">
+                <div class="h-16 bg-gradient-to-br from-pink-100 to-pink-300 rounded-lg flex items-center justify-center text-2xl mb-2">🍰</div>
+                <p class="text-primary font-semibold text-xs">Cheesecake</p>
+                <p class="text-accent font-bold text-xs">Rp 22.000</p>
+              </div>
+              <div onclick="addCashierItem('Tiramisu','28000')" class="cashier-item bg-white rounded-xl p-3 cursor-pointer active:scale-95 transition-all hover:border-accent hover:border border border-transparent" data-cat="Dessert">
+                <div class="h-16 bg-gradient-to-br from-amber-700 to-amber-900 rounded-lg flex items-center justify-center text-2xl mb-2">🍮</div>
+                <p class="text-primary font-semibold text-xs">Tiramisu</p>
+                <p class="text-accent font-bold text-xs">Rp 28.000</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Kasir Checkout Panel -->
+        <div class="w-72 bg-white border-l border-gray-100 flex flex-col overflow-hidden shrink-0">
+          <div class="p-4 border-b border-gray-100">
+            <div class="flex items-center justify-between mb-2">
+              <h3 class="text-primary font-bold text-sm">🧾 Struk Kasir</h3>
+              <span class="bg-primary text-white text-[10px] px-2 py-0.5 rounded font-bold">#025</span>
+            </div>
+            <div class="flex gap-2 items-center">
+              <input class="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-2 py-1.5 text-xs text-gray-600 outline-none" placeholder="Nama pelanggan..." />
+              <select class="bg-gray-50 border border-gray-200 rounded-lg px-2 py-1.5 text-xs text-gray-600 outline-none">
+                <option>Meja 1</option><option>Meja 2</option><option>Meja 3</option>
+                <option>Meja 4</option><option>Meja 5</option><option>Take Away</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Cart Items -->
+          <div class="flex-1 overflow-y-auto p-3 space-y-2" id="cashier-cart">
+            <p class="text-gray-300 text-xs text-center pt-8">Pilih menu dari grid</p>
+          </div>
+
+          <!-- Payment Section -->
+          <div class="border-t border-gray-100 p-4">
+            <div class="space-y-1 mb-3">
+              <div class="flex justify-between text-xs text-gray-500"><span>Subtotal</span><span id="c-subtotal">Rp 0</span></div>
+              <div class="flex justify-between text-xs text-gray-500"><span>PPN 10%</span><span id="c-ppn">Rp 0</span></div>
+              <div class="flex justify-between font-bold text-sm"><span class="text-primary">Total</span><span class="text-accent" id="c-total">Rp 0</span></div>
+            </div>
+            <!-- Payment Method -->
+            <div class="flex gap-2 mb-3">
+              <button onclick="setCashierPay('kasir')" id="cp-kasir" class="flex-1 border-2 border-primary bg-primary/5 rounded-lg py-2 text-xs font-bold text-primary cp-btn">Tunai</button>
+              <button onclick="setCashierPay('debit')" id="cp-debit" class="flex-1 border-2 border-gray-200 rounded-lg py-2 text-xs font-bold text-gray-400 cp-btn">Debit</button>
+              <button onclick="setCashierPay('qris')" id="cp-qris" class="flex-1 border-2 border-gray-200 rounded-lg py-2 text-xs font-bold text-gray-400 cp-btn">QRIS</button>
+            </div>
+            <button onclick="processCashierPayment()" class="w-full bg-primary text-white font-bold py-3 rounded-xl text-sm hover:bg-accent transition-colors">
+              💳 Proses Pembayaran
+            </button>
+            <button onclick="clearCashierCart()" class="w-full mt-2 text-gray-400 text-xs py-1.5 hover:text-red-400 transition-colors">
+              Hapus Semua
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════ TAB 3: UPDATE STATUS ════════ -->
+    <div id="tab-status" class="tab-panel">
+      <div class="bg-white border-b border-gray-100 px-5 py-3 shrink-0">
+        <h1 class="text-primary font-bold text-base">Update Status Pesanan</h1>
+        <p class="text-gray-400 text-xs">Ubah status pesanan secara real-time</p>
+      </div>
+
+      <div class="flex-1 overflow-y-auto p-5">
+        <div class="grid grid-cols-2 gap-4">
+          <!-- Status card for each order -->
+          <div class="bg-white rounded-2xl p-4">
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <p class="text-primary font-bold">#024 – Meja 7</p>
+                <p class="text-gray-400 text-xs">Caramel Macchiato, Croissant Butter</p>
+              </div>
+              <span class="status-badge badge-new">BARU</span>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <button onclick="updateStatus(this,'Diterima','badge-process')" class="text-xs font-bold py-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-500 hover:text-white transition-colors">Terima</button>
+              <button onclick="updateStatus(this,'Diproses','badge-process')" class="text-xs font-bold py-2 rounded-lg bg-accent/10 text-accent hover:bg-accent hover:text-white transition-colors">Proses</button>
+              <button onclick="updateStatus(this,'Siap Antar','badge-done')" class="text-xs font-bold py-2 rounded-lg bg-green-50 text-green-600 hover:bg-green-500 hover:text-white transition-colors">Siap Antar</button>
+              <button onclick="updateStatus(this,'Selesai','badge-done')" class="text-xs font-bold py-2 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-500 hover:text-white transition-colors">Selesai</button>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-2xl p-4">
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <p class="text-primary font-bold">#023 – Meja 3</p>
+                <p class="text-gray-400 text-xs">Matcha Latte, Americano, Sandwich</p>
+              </div>
+              <span class="status-badge badge-process">PROSES</span>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <button onclick="updateStatus(this,'Diterima','badge-process')" class="text-xs font-bold py-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-500 hover:text-white transition-colors">Terima</button>
+              <button onclick="updateStatus(this,'Diproses','badge-process')" class="text-xs font-bold py-2 rounded-lg bg-accent/10 text-accent hover:bg-accent hover:text-white transition-colors">Proses</button>
+              <button onclick="updateStatus(this,'Siap Antar','badge-done')" class="text-xs font-bold py-2 rounded-lg bg-green-50 text-green-600 hover:bg-green-500 hover:text-white transition-colors">Siap Antar</button>
+              <button onclick="updateStatus(this,'Selesai','badge-done')" class="text-xs font-bold py-2 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-500 hover:text-white transition-colors">Selesai</button>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-2xl p-4">
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <p class="text-primary font-bold">#021 – Meja 5</p>
+                <p class="text-gray-400 text-xs">Cappuccino, Taro Latte, Tiramisu</p>
+              </div>
+              <span class="status-badge badge-process">PROSES</span>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <button onclick="updateStatus(this,'Diterima','badge-process')" class="text-xs font-bold py-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-500 hover:text-white transition-colors">Terima</button>
+              <button onclick="updateStatus(this,'Diproses','badge-process')" class="text-xs font-bold py-2 rounded-lg bg-accent/10 text-accent hover:bg-accent hover:text-white transition-colors">Proses</button>
+              <button onclick="updateStatus(this,'Siap Antar','badge-done')" class="text-xs font-bold py-2 rounded-lg bg-green-50 text-green-600 hover:bg-green-500 hover:text-white transition-colors">Siap Antar</button>
+              <button onclick="updateStatus(this,'Selesai','badge-done')" class="text-xs font-bold py-2 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-500 hover:text-white transition-colors">Selesai</button>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-2xl p-4">
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <p class="text-primary font-bold">#022 – Meja 1</p>
+                <p class="text-gray-400 text-xs">Cold Brew</p>
+              </div>
+              <span class="status-badge badge-done">SELESAI</span>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <button class="text-xs font-bold py-2 rounded-lg bg-gray-50 text-gray-300 col-span-2 cursor-not-allowed">✅ Pesanan Selesai</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Summary Stats -->
+        <div class="mt-5 grid grid-cols-4 gap-4">
+          <div class="bg-white rounded-2xl p-4 text-center">
+            <p class="text-2xl font-black text-primary">5</p>
+            <p class="text-gray-400 text-xs mt-1">Total Pesanan</p>
+          </div>
+          <div class="bg-white rounded-2xl p-4 text-center">
+            <p class="text-2xl font-black text-yellow-500">1</p>
+            <p class="text-gray-400 text-xs mt-1">Baru Masuk</p>
+          </div>
+          <div class="bg-white rounded-2xl p-4 text-center">
+            <p class="text-2xl font-black text-accent">2</p>
+            <p class="text-gray-400 text-xs mt-1">Diproses</p>
+          </div>
+          <div class="bg-white rounded-2xl p-4 text-center">
+            <p class="text-2xl font-black text-green-500">1</p>
+            <p class="text-gray-400 text-xs mt-1">Selesai</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="w-toast" class="fixed top-4 right-4 z-50 hidden">
+  <div class="bg-primary text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow-xl flex items-center gap-2">
+    <span id="w-toast-icon">✅</span>
+    <span id="w-toast-msg">Action</span>
+  </div>
+</div>
+
+<script>
+  // Cashier cart state
+  let cashierCart = [];
+
+  function switchTab(id) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(b => {
+      b.className = b.className.replace('bg-accent/20 text-accent','text-white/40 hover:bg-white/10 hover:text-white');
+    });
+    document.getElementById('tab-' + id).classList.add('active');
+    document.getElementById('nav-' + id).className = document.getElementById('nav-' + id).className.replace('text-white/40 hover:bg-white/10 hover:text-white','bg-accent/20 text-accent');
+  }
+
+  function selectOrder(id, el) {
+    document.querySelectorAll('.order-card').forEach(c => {
+      c.classList.remove('selected','border-accent');
+      c.classList.add('border-transparent');
+    });
+    el.classList.add('selected','border-accent');
+    el.classList.remove('border-transparent');
+    wShowToast('📋','Menampilkan detail pesanan #0' + (23 + id));
+  }
+
+  function confirmOrderAction(action) {
+    const msgs = { terima:'Pesanan diterima!', proses:'Pesanan dikirim ke barista!', siap:'Pesanan siap diantar!', batal:'Pesanan dibatalkan!' };
+    const icons = { terima:'✅', proses:'☕', siap:'🚀', batal:'❌' };
+    wShowToast(icons[action], msgs[action]);
+  }
+
+  function filterCashierMenu(cat, btn) {
+    document.querySelectorAll('.cashier-cat-btn').forEach(b => {
+      b.className = b.className.replace('bg-primary text-white','bg-gray-100 text-gray-600');
+    });
+    btn.className = btn.className.replace('bg-gray-100 text-gray-600','bg-primary text-white');
+    document.querySelectorAll('.cashier-item').forEach(item => {
+      item.style.display = (cat === 'Semua' || item.dataset.cat === cat) ? '' : 'none';
+    });
+  }
+
+  function addCashierItem(name, price) {
+    const p = parseInt(price);
+    const ex = cashierCart.find(i => i.name === name);
+    if (ex) ex.qty++;
+    else cashierCart.push({ name, price: p, qty: 1 });
+    renderCashierCart();
+    wShowToast('✅', name + ' ditambahkan');
+  }
+
+  function removeCashierItem(name) {
+    const idx = cashierCart.findIndex(i => i.name === name);
+    if (idx !== -1) { if (cashierCart[idx].qty > 1) cashierCart[idx].qty--; else cashierCart.splice(idx, 1); }
+    renderCashierCart();
+  }
+
+  function renderCashierCart() {
+    const el = document.getElementById('cashier-cart');
+    const sub = cashierCart.reduce((s, i) => s + i.price * i.qty, 0);
+    const ppn = Math.round(sub * 0.1);
+    const tot = sub + ppn;
+    if (cashierCart.length === 0) {
+      el.innerHTML = '<p class="text-gray-300 text-xs text-center pt-8">Pilih menu dari grid</p>';
+    } else {
+      el.innerHTML = cashierCart.map(item => `
+        <div class="flex items-center gap-2 bg-gray-50 rounded-lg p-2">
+          <div class="flex-1">
+            <p class="text-primary font-semibold text-xs leading-tight">${item.name}</p>
+            <p class="text-accent text-[10px] font-bold">Rp ${(item.price * item.qty).toLocaleString('id')}</p>
+          </div>
+          <div class="flex items-center gap-1">
+            <button onclick="removeCashierItem('${item.name}')" class="w-5 h-5 bg-gray-200 rounded text-primary text-xs font-bold flex items-center justify-center">−</button>
+            <span class="text-primary font-bold text-xs w-4 text-center">${item.qty}</span>
+            <button onclick="addCashierItem('${item.name}','${item.price}')" class="w-5 h-5 bg-primary rounded text-white text-xs font-bold flex items-center justify-center">+</button>
+          </div>
+        </div>`).join('');
+    }
+    document.getElementById('c-subtotal').textContent = 'Rp ' + sub.toLocaleString('id');
+    document.getElementById('c-ppn').textContent = 'Rp ' + ppn.toLocaleString('id');
+    document.getElementById('c-total').textContent = 'Rp ' + tot.toLocaleString('id');
+  }
+
+  function setCashierPay(m) {
+    document.querySelectorAll('.cp-btn').forEach(b => {
+      b.className = b.className.replace('border-primary bg-primary/5 text-primary','border-gray-200 text-gray-400');
+    });
+    const btn = document.getElementById('cp-' + m);
+    btn.className = btn.className.replace('border-gray-200 text-gray-400','border-primary bg-primary/5 text-primary');
+  }
+
+  function processCashierPayment() {
+    if (cashierCart.length === 0) { wShowToast('⚠️','Pilih menu dulu!'); return; }
+    wShowToast('💳','Pembayaran berhasil diproses!');
+    cashierCart = [];
+    renderCashierCart();
+  }
+
+  function clearCashierCart() { cashierCart = []; renderCashierCart(); }
+
+  function updateStatus(btn, newStatus, badgeClass) {
+    const card = btn.closest('.bg-white');
+    const badge = card.querySelector('.status-badge');
+    badge.className = 'status-badge ' + badgeClass;
+    badge.textContent = newStatus.toUpperCase();
+    wShowToast('✅','Status diubah ke: ' + newStatus);
+  }
+
+  function wShowToast(icon, msg) {
+    const t = document.getElementById('w-toast');
+    document.getElementById('w-toast-icon').textContent = icon;
+    document.getElementById('w-toast-msg').textContent = msg;
+    t.classList.remove('hidden');
+    setTimeout(() => t.classList.add('hidden'), 2000);
+  }
+</script>
+</body>
+</html>
+

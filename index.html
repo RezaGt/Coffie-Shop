@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Coworking Space PLN – UI Prototype</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <style>
+    body { font-family:'Inter',sans-serif; background:#0a2540; min-height:100vh; }
+  </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen p-8">
+  <div class="text-center mb-12">
+    <div class="flex items-center justify-center gap-3 mb-4">
+      <div class="w-12 h-12 bg-[#F5C842] rounded-2xl flex items-center justify-center text-[#0a2540] font-black text-base">CS</div>
+      <div class="text-left">
+        <p class="text-white font-black text-2xl leading-tight">Coworking Space</p>
+        <p class="text-[#1B9FD4] text-sm font-semibold">PLN Indonesia Power · UI Prototype</p>
+      </div>
+    </div>
+    <p class="text-white/50 text-sm max-w-md">Pilih tampilan antarmuka berdasarkan peran pengguna untuk melihat prototipe desain UI/UX</p>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-3xl w-full">
+    <!-- Customer -->
+    <a href="customer.html" class="group bg-white/5 hover:bg-white/10 border border-white/10 hover:border-[#1B9FD4] rounded-3xl p-6 text-center transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl">
+      <div class="w-16 h-16 bg-[#1B9FD4]/20 group-hover:bg-[#1B9FD4]/30 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4 transition-colors">📱</div>
+      <h2 class="text-white font-bold text-lg mb-1">Customer</h2>
+      <p class="text-white/40 text-xs mb-3">Mobile App</p>
+      <p class="text-white/60 text-xs leading-relaxed">Home · Menu · Pesanan · Status & Pembayaran</p>
+      <div class="mt-4 bg-white/10 rounded-lg py-1.5 text-white/50 text-[10px] font-semibold">Mobile View</div>
+      <div class="mt-3 bg-[#1B9FD4] text-white text-xs font-bold py-2 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity">Buka Prototype →</div>
+    </a>
+
+    <!-- Waiter -->
+    <a href="waiter.html" class="group bg-white/5 hover:bg-white/10 border border-white/10 hover:border-[#F5C842] rounded-3xl p-6 text-center transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl">
+      <div class="w-16 h-16 bg-[#F5C842]/20 group-hover:bg-[#F5C842]/30 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4 transition-colors">🍽️</div>
+      <h2 class="text-white font-bold text-lg mb-1">Waiter</h2>
+      <p class="text-white/40 text-xs mb-3">Tablet App</p>
+      <p class="text-white/60 text-xs leading-relaxed">Pesanan Masuk · Kasir · Update Status</p>
+      <div class="mt-4 bg-white/10 rounded-lg py-1.5 text-white/50 text-[10px] font-semibold">1024 × 768 px</div>
+      <div class="mt-3 bg-[#F5C842] text-[#0a2540] text-xs font-bold py-2 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity">Buka Prototype →</div>
+    </a>
+
+    <!-- Manager -->
+    <a href="manager.html" class="group bg-white/5 hover:bg-white/10 border border-white/10 hover:border-[#10B981] rounded-3xl p-6 text-center transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl">
+      <div class="w-16 h-16 bg-[#10B981]/20 group-hover:bg-[#10B981]/30 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4 transition-colors">📊</div>
+      <h2 class="text-white font-bold text-lg mb-1">Manager</h2>
+      <p class="text-white/40 text-xs mb-3">Desktop App</p>
+      <p class="text-white/60 text-xs leading-relaxed">Produk · Manajemen Promo · Analitik & Laporan</p>
+      <div class="mt-4 bg-white/10 rounded-lg py-1.5 text-white/50 text-[10px] font-semibold">1440 × 900 px</div>
+      <div class="mt-3 bg-[#10B981] text-white text-xs font-bold py-2 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity">Buka Prototype →</div>
+    </a>
+  </div>
+
+  <p class="text-white/20 text-xs mt-12">Good Ideas Start With Coffee. ☕ · Coworking Space PLN Indonesia Power</p>
+</body>
+</html>
+

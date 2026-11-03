@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Coworking Space – Manager Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#0a2540',
+            accent:  '#1B9FD4',
+            gold:    '#F5C842',
+            cream:   '#F4F1EC',
+          }
+        }
+      }
+    }
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    body { min-width: 0; width: 100%; min-height: 100vh; margin:0; font-family:'Inter',sans-serif; background:#F4F1EC; }
+    .sidebar { width:220px; min-height:100vh; }
+    .tab-panel { display:none; }
+    .tab-panel.active { display:block; }
+    ::-webkit-scrollbar { width:5px; height:5px; }
+    ::-webkit-scrollbar-track { background:#f1f1f1; }
+    ::-webkit-scrollbar-thumb { background:#1B9FD4; border-radius:5px; }
+    .nav-item { transition:all .2s; }
+    .nav-item.active { background:#1B9FD4; color:white; }
+    .nav-item:not(.active):hover { background:rgba(255,255,255,.08); }
+    .tag { font-size:10px; font-weight:700; padding:2px 8px; border-radius:99px; }
+    .tag-active   { background:#D1FAE5; color:#065F46; }
+    .tag-inactive { background:#FEE2E2; color:#991B1B; }
+    .tag-promo    { background:#FEF3C7; color:#92400E; }
+    input[type="text"], input[type="number"], select, textarea {
+      outline:none;
+      border:1px solid #E5E7EB;
+      border-radius:8px;
+      padding:6px 10px;
+      font-size:12px;
+      color:#0a2540;
+      background:#F9FAFB;
+      width:100%;
+      transition:border .2s;
+    }
+    input:focus, select:focus, textarea:focus { border-color:#1B9FD4; background:white; }
+    .sortable th { cursor:pointer; user-select:none; }
+    .sortable th:hover { background:#f0f9ff; }
+  </style>
+</head>
+<body>
+<div class="flex">
+
+  <!-- ══════════ SIDEBAR ══════════ -->
+  <aside class="sidebar bg-primary flex flex-col shrink-0 sticky top-0 h-screen overflow-y-auto">
+    <!-- Logo -->
+    <div class="px-5 py-5 border-b border-white/10">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-gold rounded-xl flex items-center justify-center text-primary font-black text-sm">CS</div>
+        <div>
+          <p class="text-white font-bold text-sm leading-tight">Coworking Space</p>
+          <p class="text-accent text-[10px]">Manager Dashboard</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Nav -->
+    <nav class="flex-1 p-3 space-y-1">
+      <p class="text-white/30 text-[10px] font-bold uppercase tracking-widest px-3 pt-3 pb-1">Menu Utama</p>
+      <button onclick="switchMgrTab('products')" id="mnav-products" class="nav-item active w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-left">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+        Produk & Menu
+      </button>
+      <button onclick="switchMgrTab('promo')" id="mnav-promo" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-left text-white/60">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+        Manajemen Promo
+      </button>
+      <button onclick="switchMgrTab('analytics')" id="mnav-analytics" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-left text-white/60">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+        Analitik & Laporan
+      </button>
+    </nav>
+
+    <!-- User Info -->
+    <div class="p-4 border-t border-white/10">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 bg-accent rounded-full flex items-center justify-center text-white text-sm font-bold">M</div>
+        <div>
+          <p class="text-white text-sm font-semibold">Manager</p>
+          <p class="text-white/40 text-[10px]">Coworking Space PLN</p>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ══════════ MAIN AREA ══════════ -->
+  <main class="flex-1 min-h-screen overflow-y-auto">
+
+    <!-- ════════ TAB: PRODUK ════════ -->
+    <div id="tab-products" class="tab-panel active p-6">
+      <!-- Header -->
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h1 class="text-primary font-black text-2xl">Produk & Menu</h1>
+          <p class="text-gray-500 text-sm mt-0.5">Kelola kategori, harga, dan ketersediaan produk</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <div class="bg-white rounded-xl flex items-center px-3 py-2 gap-2 border border-gray-200">
+            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            <input class="bg-transparent text-sm text-gray-600 outline-none w-48 border-0 p-0" placeholder="Cari produk...">
+          </div>
+          <button onclick="openAddProduct()" class="bg-primary text-white text-sm font-bold px-4 py-2 rounded-xl flex items-center gap-2 hover:bg-accent transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            Tambah Produk
+          </button>
+        </div>
+      </div>
+
+      <!-- Stats Row -->
+      <div class="grid grid-cols-4 gap-4 mb-6">
+        <div class="bg-white rounded-2xl p-4 border border-gray-100">
+          <p class="text-gray-400 text-xs font-semibold uppercase tracking-wide">Total Produk</p>
+          <p class="text-primary font-black text-3xl mt-1">16</p>
+          <p class="text-green-500 text-xs mt-1">↑ 2 baru bulan ini</p>
+        </div>
+        <div class="bg-white rounded-2xl p-4 border border-gray-100">
+          <p class="text-gray-400 text-xs font-semibold uppercase tracking-wide">Aktif</p>
+          <p class="text-green-500 font-black text-3xl mt-1">14</p>
+          <p class="text-gray-400 text-xs mt-1">87.5% dari total</p>
+        </div>
+        <div class="bg-white rounded-2xl p-4 border border-gray-100">
+          <p class="text-gray-400 text-xs font-semibold uppercase tracking-wide">Nonaktif</p>
+          <p class="text-red-400 font-black text-3xl mt-1">2</p>
+          <p class="text-gray-400 text-xs mt-1">Stok habis</p>
+        </div>
+        <div class="bg-white rounded-2xl p-4 border border-gray-100">
+          <p class="text-gray-400 text-xs font-semibold uppercase tracking-wide">Kategori</p>
+          <p class="text-accent font-black text-3xl mt-1">5</p>
+          <p class="text-gray-400 text-xs mt-1">Kopi, Non Kopi, Makanan...</p>
+        </div>
+      </div>
+
+      <!-- Products Table -->
+      <div class="bg-white rounded-2xl overflow-hidden border border-gray-100">
+        <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+          <h3 class="text-primary font-bold text-sm">Daftar Produk</h3>
+          <div class="flex gap-2">
+            <select class="text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-gray-50 text-gray-600" style="width:auto">
+              <option>Semua Kategori</option>
+              <option>Kopi</option><option>Non Kopi</option><option>Makanan</option><option>Dessert</option>
+            </select>
+            <select class="text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-gray-50 text-gray-600" style="width:auto">
+              <option>Semua Status</option><option>Aktif</option><option>Nonaktif</option>
+            </select>
+          </div>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full sortable">
+            <thead class="bg-gray-50 text-gray-500 text-xs font-semibold uppercase tracking-wide">
+              <tr>
+                <th class="px-5 py-3 text-left">Produk</th>
+                <th class="px-5 py-3 text-left">Kategori</th>
+                <th class="px-5 py-3 text-left">Harga</th>
+                <th class="px-5 py-3 text-left">Ketersediaan</th>
+                <th class="px-5 py-3 text-left">Terjual</th>
+                <th class="px-5 py-3 text-left">Aksi</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-50 text-sm" id="products-tbody">
+              <!-- Row Template (dynamic) -->
+            </tbody>
+          </table>
+        </div>
+        <div class="px-5 py-3 border-t border-gray-100 flex items-center justify-between text-xs text-gray-400">
+          <span>Menampilkan 16 produk</span>
+          <div class="flex items-center gap-1">
+            <button class="px-2 py-1 rounded hover:bg-gray-100">←</button>
+            <button class="px-2 py-1 rounded bg-primary text-white">1</button>
+            <button class="px-2 py-1 rounded hover:bg-gray-100">2</button>
+            <button class="px-2 py-1 rounded hover:bg-gray-100">→</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════ TAB: PROMO ════════ -->
+    <div id="tab-promo" class="tab-panel p-6">
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h1 class="text-primary font-black text-2xl">Manajemen Promo</h1>
+          <p class="text-gray-500 text-sm mt-0.5">Upload dan kelola banner promo yang tampil di halaman Home customer</p>
+        </div>
+        <button onclick="openAddPromo()" class="bg-primary text-white text-sm font-bold px-4 py-2 rounded-xl flex items-center gap-2 hover:bg-accent transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+          Tambah Promo
+        </button>
+      </div>
+
+      <!-- Active Promos Grid -->
+      <div class="grid grid-cols-3 gap-5 mb-6">
+        <!-- Promo Card 1 -->
+        <div class="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm">
+          <div class="h-36 bg-gradient-to-br from-primary to-accent flex items-center justify-center relative">
+            <div class="text-center text-white p-4">
+              <p class="text-[10px] font-semibold opacity-70">PROMO</p>
+              <p class="font-black text-xl leading-tight">Buy 2 Get 1 FREE!</p>
+              <p class="text-[10px] opacity-70 mt-1">Semua varian Latte</p>
+            </div>
+            <span class="absolute top-2 right-2 bg-green-400 text-white text-[9px] font-bold px-2 py-0.5 rounded-full">LIVE</span>
+          </div>
+          <div class="p-4">
+            <div class="flex items-start justify-between">
+              <div>
+                <p class="text-primary font-bold text-sm">Buy 2 Get 1 Latte</p>
+                <p class="text-gray-400 text-xs mt-0.5">1 Nov – 30 Nov 2026</p>
+              </div>
+              <span class="tag tag-active">AKTIF</span>
+            </div>
+            <div class="flex gap-2 mt-4">
+              <button onclick="editPromo(1)" class="flex-1 bg-primary/5 text-primary text-xs font-bold py-2 rounded-lg hover:bg-primary hover:text-white transition-colors">✏️ Edit</button>
+              <button onclick="togglePromo(this)" class="flex-1 bg-red-50 text-red-400 text-xs font-bold py-2 rounded-lg hover:bg-red-400 hover:text-white transition-colors">⏸ Nonaktifkan</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Promo Card 2 -->
+        <div class="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm">
+          <div class="h-36 bg-gradient-to-br from-amber-600 to-amber-400 flex items-center justify-center relative">
+            <div class="text-center text-white p-4">
+              <p class="text-[10px] font-semibold opacity-70">WEEKEND SPECIAL</p>
+              <p class="font-black text-xl leading-tight">Diskon 20% Snack</p>
+              <p class="text-[10px] opacity-70 mt-1">Sabtu & Minggu</p>
+            </div>
+            <span class="absolute top-2 right-2 bg-green-400 text-white text-[9px] font-bold px-2 py-0.5 rounded-full">LIVE</span>
+          </div>
+          <div class="p-4">
+            <div class="flex items-start justify-between">
+              <div>
+                <p class="text-primary font-bold text-sm">Weekend Snack Disc.</p>
+                <p class="text-gray-400 text-xs mt-0.5">Setiap Sabtu & Minggu</p>
+              </div>
+              <span class="tag tag-active">AKTIF</span>
+            </div>
+            <div class="flex gap-2 mt-4">
+              <button onclick="editPromo(2)" class="flex-1 bg-primary/5 text-primary text-xs font-bold py-2 rounded-lg hover:bg-primary hover:text-white transition-colors">✏️ Edit</button>
+              <button onclick="togglePromo(this)" class="flex-1 bg-red-50 text-red-400 text-xs font-bold py-2 rounded-lg hover:bg-red-400 hover:text-white transition-colors">⏸ Nonaktifkan</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Promo Card 3 (nonaktif) -->
+        <div class="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm opacity-60">
+          <div class="h-36 bg-gradient-to-br from-gray-400 to-gray-600 flex items-center justify-center relative">
+            <div class="text-center text-white p-4">
+              <p class="text-[10px] font-semibold opacity-70">PROMO LAMA</p>
+              <p class="font-black text-xl leading-tight">Hari Kemerdekaan</p>
+            </div>
+            <span class="absolute top-2 right-2 bg-gray-400 text-white text-[9px] font-bold px-2 py-0.5 rounded-full">OFF</span>
+          </div>
+          <div class="p-4">
+            <div class="flex items-start justify-between">
+              <div>
+                <p class="text-primary font-bold text-sm">Promo 17 Agustus</p>
+                <p class="text-gray-400 text-xs mt-0.5">17 Agt 2026 (Berakhir)</p>
+              </div>
+              <span class="tag tag-inactive">NONAKTIF</span>
+            </div>
+            <div class="flex gap-2 mt-4">
+              <button onclick="editPromo(3)" class="flex-1 bg-primary/5 text-primary text-xs font-bold py-2 rounded-lg hover:bg-primary hover:text-white transition-colors">✏️ Edit</button>
+              <button onclick="togglePromo(this)" class="flex-1 bg-green-50 text-green-600 text-xs font-bold py-2 rounded-lg hover:bg-green-500 hover:text-white transition-colors">▶ Aktifkan</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Add New Promo Placeholder -->
+        <div onclick="openAddPromo()" class="bg-white rounded-2xl overflow-hidden border-2 border-dashed border-gray-200 flex flex-col items-center justify-center h-64 cursor-pointer hover:border-accent transition-colors group">
+          <div class="w-12 h-12 bg-gray-100 group-hover:bg-accent/10 rounded-full flex items-center justify-center text-2xl mb-3 transition-colors">+</div>
+          <p class="text-gray-400 group-hover:text-accent text-sm font-semibold transition-colors">Upload Promo Baru</p>
+          <p class="text-gray-300 text-xs mt-1">JPG, PNG, max 2MB</p>
+        </div>
+      </div>
+
+      <!-- Promo Table -->
+      <div class="bg-white rounded-2xl overflow-hidden border border-gray-100">
+        <div class="px-5 py-4 border-b border-gray-100">
+          <h3 class="text-primary font-bold text-sm">Riwayat Promo</h3>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead class="bg-gray-50 text-gray-500 text-xs font-semibold uppercase tracking-wide">
+              <tr>
+                <th class="px-5 py-3 text-left">Nama Promo</th>
+                <th class="px-5 py-3 text-left">Tipe</th>
+                <th class="px-5 py-3 text-left">Berlaku</th>
+                <th class="px-5 py-3 text-left">Status</th>
+                <th class="px-5 py-3 text-left">Tampilkan di Home</th>
+                <th class="px-5 py-3 text-left">Aksi</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-50 text-sm">
+              <tr class="hover:bg-gray-50">
+                <td class="px-5 py-3 font-semibold text-primary">Buy 2 Get 1 Latte</td>
+                <td class="px-5 py-3 text-gray-500">Bundle</td>
+                <td class="px-5 py-3 text-gray-500">1 Nov – 30 Nov 2026</td>
+                <td class="px-5 py-3"><span class="tag tag-active">AKTIF</span></td>
+                <td class="px-5 py-3">
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" checked class="sr-only peer">
+                    <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-accent"></div>
+                  </label>
+                </td>
+                <td class="px-5 py-3"><button class="text-accent text-xs font-bold hover:underline">Edit</button></td>
+              </tr>
+              <tr class="hover:bg-gray-50">
+                <td class="px-5 py-3 font-semibold text-primary">Weekend Snack Discount</td>
+                <td class="px-5 py-3 text-gray-500">Diskon %</td>
+                <td class="px-5 py-3 text-gray-500">Setiap Sabtu & Minggu</td>
+                <td class="px-5 py-3"><span class="tag tag-active">AKTIF</span></td>
+                <td class="px-5 py-3">
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" checked class="sr-only peer">
+                    <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-accent"></div>
+                  </label>
+                </td>
+                <td class="px-5 py-3"><button class="text-accent text-xs font-bold hover:underline">Edit</button></td>
+              </tr>
+              <tr class="hover:bg-gray-50 opacity-60">
+                <td class="px-5 py-3 font-semibold text-primary">Promo 17 Agustus</td>
+                <td class="px-5 py-3 text-gray-500">Event</td>
+                <td class="px-5 py-3 text-gray-500">17 Agt 2026</td>
+                <td class="px-5 py-3"><span class="tag tag-inactive">NONAKTIF</span></td>
+                <td class="px-5 py-3">
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" class="sr-only peer">
+                    <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-accent"></div>
+                  </label>
+                </td>
+                <td class="px-5 py-3"><button class="text-accent text-xs font-bold hover:underline">Edit</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════ TAB: ANALYTICS ════════ -->
+    <div id="tab-analytics" class="tab-panel p-6">
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h1 class="text-primary font-black text-2xl">Analitik & Laporan</h1>
+          <p class="text-gray-500 text-sm mt-0.5">Pantau performa produk dan tren penjualan</p>
+        </div>
+        <div class="flex gap-2">
+          <select class="text-xs border border-gray-200 rounded-xl px-3 py-2 bg-white text-gray-600" style="width:auto">
+            <option>November 2026</option><option>Oktober 2026</option><option>September 2026</option>
+          </select>
+          <button class="bg-primary text-white text-xs font-bold px-4 py-2 rounded-xl hover:bg-accent transition-colors">Export PDF</button>
+        </div>
+      </div>
+
+      <!-- KPI Cards -->
+      <div class="grid grid-cols-4 gap-4 mb-6">
+        <div class="bg-white rounded-2xl p-5 border border-gray-100">
+          <div class="flex items-center justify-between mb-3">
+            <p class="text-gray-400 text-xs font-semibold uppercase tracking-wide">Total Pendapatan</p>
+            <div class="w-8 h-8 bg-green-50 rounded-lg flex items-center justify-center text-base">💰</div>
+          </div>
+          <p class="text-primary font-black text-2xl">Rp 4.2jt</p>
+          <p class="text-green-500 text-xs mt-1 font-semibold">↑ 12.5% vs bulan lalu</p>
+        </div>
+        <div class="bg-white rounded-2xl p-5 border border-gray-100">
+          <div class="flex items-center justify-between mb-3">
+            <p class="text-gray-400 text-xs font-semibold uppercase tracking-wide">Total Pesanan</p>
+            <div class="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center text-base">📋</div>
+          </div>
+          <p class="text-primary font-black text-2xl">168</p>
+          <p class="text-green-500 text-xs mt-1 font-semibold">↑ 8.3% vs bulan lalu</p>
+        </div>
+        <div class="bg-white rounded-2xl p-5 border border-gray-100">
+          <div class="flex items-center justify-between mb-3">
+            <p class="text-gray-400 text-xs font-semibold uppercase tracking-wide">Avg. Order Value</p>
+            <div class="w-8 h-8 bg-amber-50 rounded-lg flex items-center justify-center text-base">📊</div>
+          </div>
+          <p class="text-primary font-black text-2xl">Rp 25k</p>
+          <p class="text-gray-400 text-xs mt-1 font-semibold">→ Stabil</p>
+        </div>
+        <div class="bg-white rounded-2xl p-5 border border-gray-100">
+          <div class="flex items-center justify-between mb-3">
+            <p class="text-gray-400 text-xs font-semibold uppercase tracking-wide">Best Seller</p>
+            <div class="w-8 h-8 bg-red-50 rounded-lg flex items-center justify-center text-base">🔥</div>
+          </div>
+          <p class="text-primary font-black text-lg">Caramel Macchiato</p>
+          <p class="text-accent text-xs mt-1 font-semibold">48 terjual bulan ini</p>
+        </div>
+      </div>
+
+      <!-- Charts Row -->
+      <div class="grid grid-cols-3 gap-5 mb-5">
+        <!-- Donut Chart: Best Seller -->
+        <div class="bg-white rounded-2xl p-5 border border-gray-100 col-span-1">
+          <h3 class="text-primary font-bold text-sm mb-4">🏆 Rasio Produk Best Seller</h3>
+          <div style="position:relative; height:200px;">
+            <canvas id="donutChart"></canvas>
+          </div>
+          <!-- Legend -->
+          <div class="mt-4 space-y-2">
+            <div class="flex items-center justify-between text-xs">
+              <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-[#1B9FD4]"></div><span class="text-gray-600">Caramel Macchiato</span></div>
+              <span class="text-primary font-bold">28%</span>
+            </div>
+            <div class="flex items-center justify-between text-xs">
+              <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-[#F5C842]"></div><span class="text-gray-600">Matcha Latte</span></div>
+              <span class="text-primary font-bold">20%</span>
+            </div>
+            <div class="flex items-center justify-between text-xs">
+              <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-[#0a2540]"></div><span class="text-gray-600">Americano</span></div>
+              <span class="text-primary font-bold">15%</span>
+            </div>
+            <div class="flex items-center justify-between text-xs">
+              <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-[#10B981]"></div><span class="text-gray-600">Cappuccino</span></div>
+              <span class="text-primary font-bold">12%</span>
+            </div>
+            <div class="flex items-center justify-between text-xs">
+              <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-[#E5E7EB]"></div><span class="text-gray-600">Lainnya</span></div>
+              <span class="text-primary font-bold">25%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bar Chart: Daily Revenue -->
+        <div class="bg-white rounded-2xl p-5 border border-gray-100 col-span-2">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-primary font-bold text-sm">📈 Pendapatan Harian (Nov 2026)</h3>
+            <div class="flex gap-2 text-[10px]">
+              <button class="bg-primary text-white px-2 py-1 rounded font-semibold">Harian</button>
+              <button class="bg-gray-100 text-gray-500 px-2 py-1 rounded font-semibold">Mingguan</button>
+            </div>
+          </div>
+          <div style="position:relative; height:220px;">
+            <canvas id="barChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Product Performance Table -->
+      <div class="bg-white rounded-2xl overflow-hidden border border-gray-100">
+        <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+          <h3 class="text-primary font-bold text-sm">📊 Performa Produk Bulan Ini</h3>
+          <button class="text-accent text-xs font-semibold hover:underline">Lihat semua →</button>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead class="bg-gray-50 text-gray-500 text-xs font-semibold uppercase tracking-wide">
+              <tr>
+                <th class="px-5 py-3 text-left">Rank</th>
+                <th class="px-5 py-3 text-left">Produk</th>
+                <th class="px-5 py-3 text-left">Kategori</th>
+                <th class="px-5 py-3 text-left">Terjual</th>
+                <th class="px-5 py-3 text-left">Pendapatan</th>
+                <th class="px-5 py-3 text-left">Tren</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-50 text-sm">
+              <tr class="hover:bg-gray-50">
+                <td class="px-5 py-3"><span class="w-6 h-6 bg-gold rounded-full flex items-center justify-center text-primary font-black text-xs">1</span></td>
+                <td class="px-5 py-3"><div class="flex items-center gap-2"><span class="text-lg">☕</span><span class="font-semibold text-primary">Caramel Macchiato</span></div></td>
+                <td class="px-5 py-3 text-gray-500">Kopi</td>
+                <td class="px-5 py-3 font-bold text-primary">48</td>
+                <td class="px-5 py-3 font-bold text-accent">Rp 1.344.000</td>
+                <td class="px-5 py-3"><div class="flex items-center gap-1"><div class="h-2 bg-accent rounded-full" style="width:80px"></div><span class="text-green-500 text-xs font-bold">↑ 18%</span></div></td>
+              </tr>
+              <tr class="hover:bg-gray-50">
+                <td class="px-5 py-3"><span class="w-6 h-6 bg-gray-200 rounded-full flex items-center justify-center text-primary font-black text-xs">2</span></td>
+                <td class="px-5 py-3"><div class="flex items-center gap-2"><span class="text-lg">🍵</span><span class="font-semibold text-primary">Matcha Latte</span></div></td>
+                <td class="px-5 py-3 text-gray-500">Non Kopi</td>
+                <td class="px-5 py-3 font-bold text-primary">34</td>
+                <td class="px-5 py-3 font-bold text-accent">Rp 884.000</td>
+                <td class="px-5 py-3"><div class="flex items-center gap-1"><div class="h-2 bg-green-400 rounded-full" style="width:55px"></div><span class="text-green-500 text-xs font-bold">↑ 8%</span></div></td>
+              </tr>
+              <tr class="hover:bg-gray-50">
+                <td class="px-5 py-3"><span class="w-6 h-6 bg-amber-100 rounded-full flex items-center justify-center text-primary font-black text-xs">3</span></td>
+                <td class="px-5 py-3"><div class="flex items-center gap-2"><span class="text-lg">☕</span><span class="font-semibold text-primary">Americano</span></div></td>
+                <td class="px-5 py-3 text-gray-500">Kopi</td>
+                <td class="px-5 py-3 font-bold text-primary">26</td>
+                <td class="px-5 py-3 font-bold text-accent">Rp 520.000</td>
+                <td class="px-5 py-3"><div class="flex items-center gap-1"><div class="h-2 bg-yellow-400 rounded-full" style="width:42px"></div><span class="text-yellow-500 text-xs font-bold">→ 0%</span></div></td>
+              </tr>
+              <tr class="hover:bg-gray-50">
+                <td class="px-5 py-3"><span class="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 font-black text-xs">4</span></td>
+                <td class="px-5 py-3"><div class="flex items-center gap-2"><span class="text-lg">🧋</span><span class="font-semibold text-primary">Cappuccino</span></div></td>
+                <td class="px-5 py-3 text-gray-500">Kopi</td>
+                <td class="px-5 py-3 font-bold text-primary">21</td>
+                <td class="px-5 py-3 font-bold text-accent">Rp 525.000</td>
+                <td class="px-5 py-3"><div class="flex items-center gap-1"><div class="h-2 bg-accent rounded-full" style="width:34px"></div><span class="text-green-500 text-xs font-bold">↑ 5%</span></div></td>
+              </tr>
+              <tr class="hover:bg-gray-50">
+                <td class="px-5 py-3"><span class="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 font-black text-xs">5</span></td>
+                <td class="px-5 py-3"><div class="flex items-center gap-2"><span class="text-lg">🥐</span><span class="font-semibold text-primary">Croissant Butter</span></div></td>
+                <td class="px-5 py-3 text-gray-500">Makanan</td>
+                <td class="px-5 py-3 font-bold text-primary">19</td>
+                <td class="px-5 py-3 font-bold text-accent">Rp 342.000</td>
+                <td class="px-5 py-3"><div class="flex items-center gap-1"><div class="h-2 bg-red-300 rounded-full" style="width:30px"></div><span class="text-red-400 text-xs font-bold">↓ 3%</span></div></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ══ Modal: Add/Edit Product ══ -->
+<div id="modal-product" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center">
+  <div class="bg-white rounded-2xl shadow-2xl w-[480px] p-6">
+    <div class="flex items-center justify-between mb-5">
+      <h2 class="text-primary font-bold text-lg" id="modal-product-title">Tambah Produk Baru</h2>
+      <button onclick="closeModal('modal-product')" class="text-gray-400 hover:text-primary text-xl">✕</button>
+    </div>
+    <div class="space-y-4">
+      <div>
+        <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1 block">Nama Produk</label>
+        <input type="text" placeholder="Contoh: Caramel Macchiato" />
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1 block">Kategori</label>
+          <select>
+            <option>Kopi</option><option>Non Kopi</option><option>Makanan</option><option>Dessert</option><option>Racikan</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1 block">Harga (Rp)</label>
+          <input type="number" placeholder="25000" />
+        </div>
+      </div>
+      <div>
+        <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1 block">Deskripsi</label>
+        <textarea rows="2" placeholder="Deskripsi singkat produk..."></textarea>
+      </div>
+      <div>
+        <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1 block">Ketersediaan</label>
+        <div class="flex gap-3">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="radio" name="availability" value="active" checked class="accent-primary">
+            <span class="text-sm text-primary font-semibold">Tersedia</span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="radio" name="availability" value="inactive" class="accent-primary">
+            <span class="text-sm text-primary font-semibold">Tidak Tersedia</span>
+          </label>
+        </div>
+      </div>
+    </div>
+    <div class="flex gap-3 mt-6">
+      <button onclick="closeModal('modal-product')" class="flex-1 border border-gray-200 text-gray-500 font-bold py-3 rounded-xl text-sm hover:bg-gray-50">Batal</button>
+      <button onclick="saveProduct()" class="flex-1 bg-primary text-white font-bold py-3 rounded-xl text-sm hover:bg-accent transition-colors">Simpan Produk</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ Modal: Add Promo ══ -->
+<div id="modal-promo" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center">
+  <div class="bg-white rounded-2xl shadow-2xl w-[520px] p-6">
+    <div class="flex items-center justify-between mb-5">
+      <h2 class="text-primary font-bold text-lg">Tambah Promo Baru</h2>
+      <button onclick="closeModal('modal-promo')" class="text-gray-400 hover:text-primary text-xl">✕</button>
+    </div>
+    <div class="space-y-4">
+      <div>
+        <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1 block">Nama Promo</label>
+        <input type="text" placeholder="Contoh: Buy 2 Get 1 Latte" />
+      </div>
+      <!-- Image Upload -->
+      <div>
+        <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1 block">Banner Gambar</label>
+        <div class="border-2 border-dashed border-gray-200 rounded-xl p-6 text-center cursor-pointer hover:border-accent transition-colors" onclick="document.getElementById('promo-file').click()">
+          <div class="text-3xl mb-2">🖼️</div>
+          <p class="text-sm text-gray-500 font-semibold">Klik untuk upload gambar</p>
+          <p class="text-xs text-gray-300 mt-1">JPG, PNG, WebP · Max 2MB · 1200×400px</p>
+          <input type="file" id="promo-file" accept="image/*" class="hidden" onchange="previewPromoImage(this)" />
+        </div>
+        <div id="promo-preview" class="hidden mt-3 rounded-xl overflow-hidden h-28 bg-gray-100 flex items-center justify-center">
+          <img id="promo-preview-img" src="" alt="" class="w-full h-full object-cover" />
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1 block">Tanggal Mulai</label>
+          <input type="text" placeholder="01/11/2026" />
+        </div>
+        <div>
+          <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1 block">Tanggal Selesai</label>
+          <input type="text" placeholder="30/11/2026" />
+        </div>
+      </div>
+      <div>
+        <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1 block">Tampilkan di Home Customer</label>
+        <label class="flex items-center gap-3 cursor-pointer">
+          <div class="relative">
+            <input type="checkbox" id="promo-show-home" checked class="sr-only peer">
+            <div class="w-10 h-5 bg-gray-200 peer-checked:bg-accent rounded-full transition-colors"></div>
+            <div class="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full peer-checked:translate-x-5 transition-transform shadow"></div>
+          </div>
+          <span class="text-sm text-primary font-semibold">Ya, tampilkan di slider promo</span>
+        </label>
+      </div>
+    </div>
+    <div class="flex gap-3 mt-6">
+      <button onclick="closeModal('modal-promo')" class="flex-1 border border-gray-200 text-gray-500 font-bold py-3 rounded-xl text-sm hover:bg-gray-50">Batal</button>
+      <button onclick="savePromo()" class="flex-1 bg-primary text-white font-bold py-3 rounded-xl text-sm hover:bg-accent transition-colors">Simpan Promo</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="m-toast" class="fixed top-4 right-4 z-[100] hidden">
+  <div class="bg-primary text-white text-xs font-semibold px-5 py-3 rounded-xl shadow-xl flex items-center gap-2">
+    <span id="m-toast-icon">✅</span>
+    <span id="m-toast-msg">Saved</span>
+  </div>
+</div>
+
+<script>
+  // ── Products Data ──
+  const products = [
+    { name:'Espresso',           cat:'Kopi',     price:18000, sold:12, status:'active' },
+    { name:'Caramel Macchiato',  cat:'Kopi',     price:28000, sold:48, status:'active' },
+    { name:'Cappuccino',         cat:'Kopi',     price:25000, sold:21, status:'active' },
+    { name:'Americano',          cat:'Kopi',     price:20000, sold:26, status:'active' },
+    { name:'Cold Brew',          cat:'Kopi',     price:30000, sold:15, status:'active' },
+    { name:'Latte',              cat:'Kopi',     price:25000, sold:18, status:'active' },
+    { name:'Matcha Latte',       cat:'Non Kopi', price:26000, sold:34, status:'active' },
+    { name:'Chocolate',          cat:'Non Kopi', price:24000, sold:16, status:'active' },
+    { name:'Taro Latte',         cat:'Non Kopi', price:26000, sold:14, status:'active' },
+    { name:'Lemon Tea',          cat:'Non Kopi', price:18000, sold:9,  status:'inactive' },
+    { name:'Croissant Butter',   cat:'Makanan',  price:18000, sold:19, status:'active' },
+    { name:'Sandwich Tuna',      cat:'Makanan',  price:22000, sold:11, status:'active' },
+    { name:'Nasi Goreng',        cat:'Makanan',  price:25000, sold:8,  status:'active' },
+    { name:'French Fries',       cat:'Makanan',  price:15000, sold:17, status:'active' },
+    { name:'Cheesecake',         cat:'Dessert',  price:22000, sold:10, status:'active' },
+    { name:'Tiramisu',           cat:'Dessert',  price:28000, sold:7,  status:'inactive' },
+  ];
+
+  function renderProductsTable() {
+    const tbody = document.getElementById('products-tbody');
+    if (!tbody) return;
+    tbody.innerHTML = products.map((p, i) => `
+      <tr class="hover:bg-gray-50 transition-colors">
+        <td class="px-5 py-3">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 bg-amber-50 rounded-xl flex items-center justify-center text-lg">${p.cat==='Kopi'?'☕':p.cat==='Non Kopi'?'🍵':p.cat==='Makanan'?'🍽️':'🍰'}</div>
+            <span class="font-semibold text-primary text-sm">${p.name}</span>
+          </div>
+        </td>
+        <td class="px-5 py-3"><span class="bg-accent/10 text-accent text-xs font-semibold px-2 py-0.5 rounded-full">${p.cat}</span></td>
+        <td class="px-5 py-3">
+          <div class="flex items-center gap-2">
+            <span class="text-primary font-bold text-sm" id="price-${i}">Rp ${p.price.toLocaleString('id')}</span>
+            <button onclick="editPrice(${i})" class="text-accent text-[10px] hover:underline">edit</button>
+          </div>
+        </td>
+        <td class="px-5 py-3">
+          <label class="relative inline-flex items-center cursor-pointer" title="${p.status==='active'?'Klik untuk nonaktifkan':'Klik untuk aktifkan'}">
+            <input type="checkbox" ${p.status==='active'?'checked':''} onchange="toggleProductStatus(${i}, this)" class="sr-only peer">
+            <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-accent"></div>
+            <span class="ml-2 text-xs ${p.status==='active'?'text-green-600 font-semibold':'text-gray-400'}">${p.status==='active'?'Tersedia':'Nonaktif'}</span>
+          </label>
+        </td>
+        <td class="px-5 py-3">
+          <div class="flex items-center gap-2">
+            <div class="h-1.5 bg-gray-100 rounded-full w-20 overflow-hidden"><div class="h-full bg-accent rounded-full" style="width:${Math.min(100,(p.sold/50)*100)}%"></div></div>
+            <span class="text-primary font-bold text-xs">${p.sold}</span>
+          </div>
+        </td>
+        <td class="px-5 py-3">
+          <div class="flex gap-2">
+            <button onclick="editProduct(${i})" class="text-xs bg-accent/10 text-accent font-bold px-3 py-1.5 rounded-lg hover:bg-accent hover:text-white transition-colors">Edit</button>
+            <button onclick="deleteProduct(${i})" class="text-xs bg-red-50 text-red-400 font-bold px-3 py-1.5 rounded-lg hover:bg-red-400 hover:text-white transition-colors">Hapus</button>
+          </div>
+        </td>
+      </tr>`).join('');
+  }
+
+  function editPrice(idx) {
+    const newPrice = prompt(`Harga baru untuk "${products[idx].name}" (sekarang Rp ${products[idx].price.toLocaleString('id')}):`, products[idx].price);
+    if (newPrice && !isNaN(newPrice)) {
+      products[idx].price = parseInt(newPrice);
+      renderProductsTable();
+      mShowToast('💰','Harga berhasil diperbarui!');
+    }
+  }
+
+  function toggleProductStatus(idx, cb) {
+    products[idx].status = cb.checked ? 'active' : 'inactive';
+    renderProductsTable();
+    mShowToast('✅', products[idx].name + ' diubah ke: ' + (cb.checked ? 'Tersedia' : 'Nonaktif'));
+  }
+
+  function editProduct(idx) {
+    document.getElementById('modal-product-title').textContent = 'Edit Produk: ' + products[idx].name;
+    document.getElementById('modal-product').classList.remove('hidden');
+  }
+
+  function deleteProduct(idx) {
+    if (confirm(`Hapus produk "${products[idx].name}"?`)) {
+      products.splice(idx, 1);
+      renderProductsTable();
+      mShowToast('🗑️','Produk dihapus');
+    }
+  }
+
+  // ── Manager Tabs ──
+  function switchMgrTab(id) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => {
+      n.classList.remove('active');
+      if (!n.classList.contains('active')) n.classList.add('text-white/60');
+    });
+    document.getElementById('tab-' + id).classList.add('active');
+    const navBtn = document.getElementById('mnav-' + id);
+    navBtn.classList.add('active');
+    navBtn.classList.remove('text-white/60');
+
+    if (id === 'analytics') initCharts();
+  }
+
+  // ── Modals ──
+  function openAddProduct() { document.getElementById('modal-product-title').textContent = 'Tambah Produk Baru'; document.getElementById('modal-product').classList.remove('hidden'); }
+  function openAddPromo()   { document.getElementById('modal-promo').classList.remove('hidden'); }
+  function closeModal(id)   { document.getElementById(id).classList.add('hidden'); }
+  function saveProduct()    { closeModal('modal-product'); renderProductsTable(); mShowToast('✅','Produk berhasil disimpan!'); }
+  function savePromo()      { closeModal('modal-promo'); mShowToast('✅','Promo berhasil disimpan!'); }
+  function editPromo(id)    { openAddPromo(); }
+  function togglePromo(btn) {
+    const card = btn.closest('.bg-white');
+    const badge = card.querySelector('.tag');
+    if (badge.classList.contains('tag-active')) {
+      badge.classList.replace('tag-active','tag-inactive');
+      badge.textContent = 'NONAKTIF';
+      btn.textContent = '▶ Aktifkan';
+      btn.className = btn.className.replace(/bg-red-50 text-red-400/,'bg-green-50 text-green-600');
+      card.parentElement.classList.add('opacity-60');
+    } else {
+      badge.classList.replace('tag-inactive','tag-active');
+      badge.textContent = 'AKTIF';
+      btn.textContent = '⏸ Nonaktifkan';
+      btn.className = btn.className.replace(/bg-green-50 text-green-600/,'bg-red-50 text-red-400');
+      card.parentElement.classList.remove('opacity-60');
+    }
+    mShowToast('🔄','Status promo diperbarui!');
+  }
+
+  function previewPromoImage(input) {
+    if (input.files && input.files[0]) {
+      const reader = new FileReader();
+      reader.onload = e => {
+        document.getElementById('promo-preview').classList.remove('hidden');
+        document.getElementById('promo-preview-img').src = e.target.result;
+      };
+      reader.readAsDataURL(input.files[0]);
+    }
+  }
+
+  // ── Charts ──
+  let chartsInit = false;
+  function initCharts() {
+    if (chartsInit) return;
+    chartsInit = true;
+
+    // Donut
+    new Chart(document.getElementById('donutChart'), {
+      type: 'doughnut',
+      data: {
+        labels: ['Caramel Macchiato','Matcha Latte','Americano','Cappuccino','Lainnya'],
+        datasets: [{
+          data: [28, 20, 15, 12, 25],
+          backgroundColor: ['#1B9FD4','#F5C842','#0a2540','#10B981','#E5E7EB'],
+          borderWidth: 0,
+          hoverOffset: 6,
+        }]
+      },
+      options: {
+        cutout: '65%',
+        plugins: { legend: { display: false } },
+        responsive: true,
+        maintainAspectRatio: false,
+      }
+    });
+
+    // Bar
+    new Chart(document.getElementById('barChart'), {
+      type: 'bar',
+      data: {
+        labels: ['1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20','21','22','23','24','25','26','27','28','29','30'],
+        datasets: [{
+          label: 'Pendapatan (Rp)',
+          data: [120000,95000,180000,145000,200000,95000,60000,175000,190000,210000,165000,185000,220000,100000,80000,195000,230000,215000,175000,190000,205000,88000,70000,210000,225000,200000,185000,178000,195000,210000],
+          backgroundColor: '#1B9FD4',
+          borderRadius: 6,
+          borderSkipped: false,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: {
+            ticks: { font: { size: 10 }, callback: v => 'Rp ' + (v/1000) + 'k' },
+            grid: { color: '#F3F4F6' }
+          },
+          x: { ticks: { font: { size: 9 } }, grid: { display: false } }
+        }
+      }
+    });
+  }
+
+  // ── Toast ──
+  function mShowToast(icon, msg) {
+    const t = document.getElementById('m-toast');
+    document.getElementById('m-toast-icon').textContent = icon;
+    document.getElementById('m-toast-msg').textContent = msg;
+    t.classList.remove('hidden');
+    setTimeout(() => t.classList.add('hidden'), 2200);
+  }
+
+  // Close modal on backdrop click
+  document.querySelectorAll('[id^="modal-"]').forEach(modal => {
+    modal.addEventListener('click', e => { if (e.target === modal) modal.classList.add('hidden'); });
+  });
+
+  // Init
+  renderProductsTable();
+</script>
+</body>
+</html>
+
